@@ -56,7 +56,7 @@ type ClusterSpec struct {
 	// their own versioned API types that should be
 	// serialized/deserialized from this field.
 	// +optional
-	ProviderConfig ProviderConfig `json:"providerConfig"`
+	ProviderConfig ProviderConfig `json:"providerConfig,omitempty"`
 }
 
 // ClusterNetworkingConfig specifies the different networking
@@ -113,26 +113,27 @@ type APIEndpoint struct {
 
 // Validate checks that an instance of Cluster is well formed
 func (ClusterStrategy) Validate(ctx request.Context, obj runtime.Object) field.ErrorList {
-	o := obj.(*cluster.Cluster)
-	log.Printf("Validating fields for Cluster %s\n", o.Name)
+
+	cluster := obj.(*cluster.Cluster)
+	log.Printf("Validating fields for Cluster %s\n", cluster.Name)
 	errors := field.ErrorList{}
 	// perform validation here and add to errors using field.Invalid
-	if o.Spec.ClusterNetwork.ServiceDomain == "" {
+	if cluster.Spec.ClusterNetwork.ServiceDomain == "" {
 		errors = append(errors, field.Invalid(
 			field.NewPath("Spec", "ClusterNetwork", "ServiceDomain"),
-			o.Spec.ClusterNetwork.ServiceDomain,
+			cluster.Spec.ClusterNetwork.ServiceDomain,
 			"invalid cluster configuration: missing Cluster.Spec.ClusterNetwork.ServiceDomain"))
 	}
-	if len(o.Spec.ClusterNetwork.Pods.CIDRBlocks) == 0 {
+	if len(cluster.Spec.ClusterNetwork.Pods.CIDRBlocks) == 0 {
 		errors = append(errors, field.Invalid(
 			field.NewPath("Spec", "ClusterNetwork", "Pods"),
-			o.Spec.ClusterNetwork.Pods,
+			cluster.Spec.ClusterNetwork.Pods,
 			"invalid cluster configuration: missing Cluster.Spec.ClusterNetwork.Pods"))
 	}
-	if len(o.Spec.ClusterNetwork.Services.CIDRBlocks) == 0 {
+	if len(cluster.Spec.ClusterNetwork.Services.CIDRBlocks) == 0 {
 		errors = append(errors, field.Invalid(
 			field.NewPath("Spec", "ClusterNetwork", "Services"),
-			o.Spec.ClusterNetwork.Services,
+			cluster.Spec.ClusterNetwork.Services,
 			"invalid cluster configuration: missing Cluster.Spec.ClusterNetwork.Services"))
 	}
 	return errors

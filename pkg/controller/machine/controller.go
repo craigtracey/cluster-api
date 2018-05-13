@@ -47,6 +47,7 @@ type MachineControllerImpl struct {
 	kubernetesClientSet *kubernetes.Clientset
 	clientSet           clientset.Interface
 	machineClient       v1alpha1.MachineInterface
+	clusterClient       v1alpha1.ClusterInterface
 	linkedNodes         map[string]bool
 }
 
@@ -68,6 +69,7 @@ func (c *MachineControllerImpl) Init(arguments sharedinformers.ControllerInitArg
 	// Create machine actuator.
 	// TODO: Assume default namespace for now. Maybe a separate a controller per namespace?
 	c.machineClient = clientset.ClusterV1alpha1().Machines(corev1.NamespaceDefault)
+	c.clusterClient = clientset.ClusterV1alpha1().Clusters(corev1.NamespaceDefault)
 	c.actuator = actuator
 
 	// Start watching for Node resource. It will effectively create a new worker queue, and
@@ -151,7 +153,7 @@ func (c *MachineControllerImpl) delete(machine *clusterv1.Machine) error {
 }
 
 func (c *MachineControllerImpl) getCluster(machine *clusterv1.Machine) (*clusterv1.Cluster, error) {
-	clusterList, err := c.clientSet.ClusterV1alpha1().Clusters(machine.Namespace).List(metav1.ListOptions{})
+	clusterList, err := c.clusterClient.List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
